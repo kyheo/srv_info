@@ -1,6 +1,6 @@
 SRV_INFO
 ========
-The main idea behind this is to have a central place where all *client* can
+The main idea behind this is to have a central place where all *clients* can
 notify events.
 
 It will run on `Google Appengine`_ service, using the Python_ SDK_.
