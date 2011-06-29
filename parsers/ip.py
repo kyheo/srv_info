@@ -1,4 +1,5 @@
 import logging
+import json
 
 import socket
 import fcntl
@@ -6,10 +7,12 @@ import struct
 
 
 def short_detail(data):
+    data = json.loads(data)
     return ' / '.join([str(v) for k, v in data.iteritems()])
 
 
 def full_detail(data):
+    data = json.loads(data)
     return '\n'.join(['%s: %s' % (k, v) for k, v in data.iteritems()])
 
 

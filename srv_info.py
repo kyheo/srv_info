@@ -1,5 +1,4 @@
 import logging
-import json
 import datetime
 
 from google.appengine.ext import webapp
@@ -41,18 +40,14 @@ class Event(db.Model):
                 self.category, self.data)
 
     @property
-    def decoded_data(self):
-        return json.loads(self.data)
-
-    @property
     def short_detail(self):
         mod = getattr(parsers, self.category.name)
-        return mod.short_detail(self.decoded_data)
+        return mod.short_detail(self.data)
 
     @property
     def full_detail(self):
         mod = getattr(parsers, self.category.name)
-        return mod.full_detail(self.decoded_data)
+        return mod.full_detail(self.data)
 
     @property
     def alert_color(self):
