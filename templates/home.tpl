@@ -35,7 +35,7 @@
       <td align="center">{{ event.date }}</td>
       <td align="center"><b>{{ event.client.name }}</b> ({{ event.ip }})</td>
       <td align="center">{{ event.category.name }}</td>
-      <td align="left"  >{{ event.data }}</td>
+      <td align="left"  >{{ event.short_detail }}</td>
     </tr>
 {% endfor %}
   </table>

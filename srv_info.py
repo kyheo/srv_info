@@ -7,6 +7,8 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
 
+import parsers
+
 # ########################
 # Models 
 # ########################
@@ -41,6 +43,16 @@ class Event(db.Model):
     @property
     def decoded_data(self):
         return json.loads(self.data)
+
+    @property
+    def short_detail(self):
+        mod = getattr(parsers, self.category.name)
+        return mod.short_detail(self.decoded_data)
+
+    @property
+    def full_detail(self):
+        mod = getattr(parsers, self.category.name)
+        return mod.full_detail(self.decoded_data)
 
 
 # ########################
