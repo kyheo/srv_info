@@ -7,11 +7,30 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
 
+# ########################
+# Models 
+# ########################
+
+class Client(db.Model):
+    name = db.StringProperty()
+    date = db.DateTimeProperty(auto_now_add=True)
+
+    def __str__(self):
+        return "[%s] %s" % (self.date, self.name)
+
+
+class Category(db.Model):
+    name = db.StringProperty()
+    date = db.DateTimeProperty(auto_now_add=True)
+
+    def __str__(self):
+        return "[%s] %s" % (self.date, self.name)
+
 
 class Event(db.Model):
-    client   = db.StringProperty()
     date     = db.DateTimeProperty(auto_now_add=True)
-    category = db.StringProperty()
+    client   = db.ReferenceProperty(Client)
+    category = db.ReferenceProperty(Category)
     ip       = db.StringProperty()
     data     = db.TextProperty()
 
@@ -24,17 +43,20 @@ class Event(db.Model):
         return json.loads(self.data)
 
 
+# ########################
+# Views
+# ########################
+
 class MainPage(webapp.RequestHandler):
     def get(self):
-        
         events = Event.all()
-        clients = set([event.client for event in events])
-        categories = set([event.category for event in events])
+        clients = Client.all()
+        categories = Category.all()
 
         if self.request.get('client'):
-            events.filter('client = ', self.request.get('client'))
+            events.filter('client = ', db.Key(self.request.get('client')))
         if self.request.get('category'):
-            events.filter('category = ', self.request.get('category'))
+            events.filter('category = ', db.Key(self.request.get('category')))
        
         data = {'events': events.order('-date').fetch(10),
                 'clients': clients,
@@ -60,19 +82,22 @@ class Notification(webapp.RequestHandler):
                 users,  load average: 0.02, 0.27, 0.19"}' \
                 http://localhost:8080/notify/nibbler/uptime
         """
-        logging.debug('Notification.post with client: %s from ip: %s' % 
-                (client, self.request.remote_addr))
         if not client:
             self.error(400)
             self.response.headers.add_header('Error-Message',
                     'Missing client id.')
         else:
-            event = Event(client=client, category=category,
-                    ip=self.request.remote_addr)
+            cli = Client.get_or_insert(client, name=client)
+            cat = Category.get_or_insert(category, name=category)
+            event = Event(client=cli, category=cat, ip=self.request.remote_addr)
             if self.request.get('data'):
                 event.data = self.request.get('data')
             event.put()
 
+
+# ########################
+# App stuff 
+# ########################
 
 routes = [
         ('/notify/([a-zA-Z0-9]+)', Notification), 

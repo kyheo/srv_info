@@ -10,14 +10,14 @@
     <select name='client' id='client'>
       <option value="">-- Pick one (optional) --</option>
       {% for client in clients %}
-      <option value="{{ client }}">{{ client }}</option>
+      <option value="{{ client.key }}">{{ client.name }}</option>
       {% endfor %}
     </select>
     <b>Category</b>
     <select name='category' id='category'>
       <option value="">-- Pick one (optional) --</option>
       {% for category in categories %}
-      <option value="{{ category }}">{{ category }}</option>
+      <option value="{{ category.key }}">{{ category.name }}</option>
       {% endfor %}
     </select>
     <input type="submit" value="Filter">
@@ -33,8 +33,8 @@
 {% for event in events %}
     <tr>
       <td align="center">{{ event.date }}</td>
-      <td align="center"><b>{{ event.client }}</b> ({{ event.ip }})</td>
-      <td align="center">{{ event.category }}</td>
+      <td align="center"><b>{{ event.client.name }}</b> ({{ event.ip }})</td>
+      <td align="center">{{ event.category.name }}</td>
       <td align="left"  >{{ event.data }}</td>
     </tr>
 {% endfor %}

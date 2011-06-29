@@ -13,6 +13,13 @@ indexes:
 - kind: Event
   properties:
   - name: category
+  - name: client
+  - name: date
+    direction: desc
+
+- kind: Event
+  properties:
+  - name: category
   - name: date
     direction: desc
 
