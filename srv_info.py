@@ -54,6 +54,18 @@ class Event(db.Model):
         mod = getattr(parsers, self.category.name)
         return mod.full_detail(self.decoded_data)
 
+    @property
+    def alert_color(self):
+        delta = datetime.datetime.utcnow() - self.date
+        seconds = delta.total_seconds()
+        if seconds < 300:
+            color = '#52FFB9'
+        elif seconds < 600:
+            color = '#F7F28E'
+        else:
+            color = '#FF8C6D'
+        return color
+
 
 # ########################
 # Views
