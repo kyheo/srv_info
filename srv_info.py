@@ -5,18 +5,19 @@ import datetime
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp.util import run_wsgi_app
+from google.appengine.ext.webapp import template
 
 
 class Event(db.Model):
-    client = db.StringProperty()
-    date   = db.DateTimeProperty(auto_now_add=True)
-    type_  = db.StringProperty()
-    ip     = db.StringProperty()
-    data   = db.TextProperty()
+    client   = db.StringProperty()
+    date     = db.DateTimeProperty(auto_now_add=True)
+    category = db.StringProperty()
+    ip       = db.StringProperty()
+    data     = db.TextProperty()
 
     def __str__(self):
-        return "Event: %s - %s - %s - %s" % (self.client, self.date.isoformat(),
-                self.type_, self.data)
+        return "[%s] %s (%s): %s - %s" % (self.date, self.client, self.ip,
+                self.category, self.data)
 
     @property
     def decoded_data(self):
@@ -25,28 +26,40 @@ class Event(db.Model):
 
 class MainPage(webapp.RequestHandler):
     def get(self):
-        self.response.out.write('<html><head><title>SRV_INFO - Event log'
-                '</title></head><body>'
-                '<b>In the future, the information will be listed in here.</b>'
-                '<h1>Event log</h1>')
-        for event in Event.all().order('-date'):
-            self.response.out.write(event)
-            self.response.out.write('<hr>')
-        self.response.out.write('<i>Page generated on %s</i>' %
-                (datetime.datetime.now(),))
-        self.response.out.write('</body></html>')
+        
+        events = Event.all()
+        clients = set([event.client for event in events])
+        categories = set([event.category for event in events])
+
+        if self.request.get('client'):
+            events.filter('client = ', self.request.get('client'))
+        if self.request.get('category'):
+            events.filter('category = ', self.request.get('category'))
+       
+        data = {'events': events.order('-date').fetch(10),
+                'clients': clients,
+                'categories': categories,
+                'now': datetime.datetime.now()}
+        self.response.out.write(template.render('templates/home.tpl', data))
+
+    def post(self):
+        return self.get()
 
 
 class Notification(webapp.RequestHandler):
-    def get(self, client=None):
-        logging.debug('Notification.get called with client: %s from ip: %s' % 
-                (client, self.request.remote_addr))
-        self.error(405)
-        self.response.headers.add_header("Error-Message", 
-                'Use HTTP POST method to send reports.')
- 
 
-    def post(self, client, type_='default'):
+    def post(self, client, category='default'):
+        """ Stores the given event in the storage
+        
+        Example::
+
+            $ wget -O - --post-data='data={"eth0":null, "lo": "127.0.0.1", \
+                "wlan0":"192.168.1.104"}' http://localhost:8080/notify/nibbler/ip
+
+            $ wget -O - --post-data='data={"uptime": "19:40:11 up 6 min,  4 \
+                users,  load average: 0.02, 0.27, 0.19"}' \
+                http://localhost:8080/notify/nibbler/uptime
+        """
         logging.debug('Notification.post with client: %s from ip: %s' % 
                 (client, self.request.remote_addr))
         if not client:
@@ -54,10 +67,9 @@ class Notification(webapp.RequestHandler):
             self.response.headers.add_header('Error-Message',
                     'Missing client id.')
         else:
-            event = Event(client=client, type_=type_,
-                     ip=self.request.remote_addr)
+            event = Event(client=client, category=category,
+                    ip=self.request.remote_addr)
             if self.request.get('data'):
-                #TODO Validate valid json, valid structure
                 event.data = self.request.get('data')
             event.put()
 
