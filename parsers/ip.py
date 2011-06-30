@@ -17,10 +17,11 @@ def full_detail(data):
 
 
 def get_from_system(params):
+    params = params.split(',')
     data = {}
-    for ifname in params['interfaces']:
+    for ifname in params:
         data[ifname] = _get_ip_address(ifname)
-    return data
+    return json.dumps(data)
 
 
 def _get_ip_address(ifname):
