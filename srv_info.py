@@ -5,8 +5,12 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import template
+from google.appengine.api import users
 
 import parsers
+
+# Add here the users that might see the info
+USERS = ['marrese@gmail.com']
 
 # ########################
 # Models 
@@ -67,6 +71,12 @@ class Event(db.Model):
 
 class MainPage(webapp.RequestHandler):
     def get(self):
+        user = users.get_current_user()
+        if user and user.nickname() not in USERS:
+            self.error(403)
+        else:
+            self.redirect(users.create_login_url(self.request.uri))
+
         events = Event.all()
         clients = Client.all()
         categories = Category.all()
