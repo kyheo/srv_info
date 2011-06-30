@@ -1,9 +1,8 @@
 import logging
-import json
-
-import socket
-import fcntl
-import struct
+try:
+    import json
+except ImportError:
+    import simplejson as json 
 
 
 def short_detail(data):
@@ -25,6 +24,10 @@ def get_from_system(params):
 
 
 def _get_ip_address(ifname):
+    import socket
+    import fcntl
+    import struct
+
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return socket.inet_ntoa(fcntl.ioctl(

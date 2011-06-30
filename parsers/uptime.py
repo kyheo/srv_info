@@ -1,5 +1,8 @@
 import logging
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json 
 
 
 def short_detail(data):
