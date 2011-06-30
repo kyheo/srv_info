@@ -52,10 +52,9 @@ class Event(db.Model):
     @property
     def alert_color(self):
         delta = datetime.datetime.utcnow() - self.date
-        seconds = delta.total_seconds()
-        if seconds < 300:
+        if delta.seconds < 300:
             color = '#52FFB9'
-        elif seconds < 600:
+        elif delta.seconds < 600:
             color = '#F7F28E'
         else:
             color = '#FF8C6D'
